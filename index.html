@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parecer Tributário — Gerador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface-2: #F2F1EE;
+  --border: #E0DDD8;
+  --border-strong: #C8C4BE;
+  --text: #1A1917;
+  --text-2: #6B6760;
+  --text-3: #9C9894;
+  --accent: #1B4FD8;
+  --accent-light: #EEF2FF;
+  --danger: #B91C1C;
+  --danger-light: #FEF2F2;
+  --success: #15803D;
+  --success-light: #F0FDF4;
+  --warning-light: #FFFBEB;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+.page { max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
+
+.site-header { border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 50; }
+.site-header-inner { max-width: 780px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 10px; height: 56px; }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.site-name { font-size: 15px; font-weight: 600; }
+.site-sub { font-size: 12px; color: var(--text-3); margin-left: 2px; }
+
+.page-title { padding: 32px 0 24px; }
+.page-title h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.page-title p { color: var(--text-2); font-size: 14px; max-width: 560px; }
+
+.steps { display: flex; flex-direction: column; gap: 16px; }
+.step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.step-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-head-text h2 { font-size: 14px; font-weight: 600; }
+.step-head-text p { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+.step-body { padding: 20px; }
+
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid-full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+input[type="text"], textarea { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 11px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text); background: var(--surface); transition: border-color .15s, box-shadow .15s; outline: none; }
+input[type="text"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(27,79,216,.12); }
+input::placeholder, textarea::placeholder { color: var(--text-3); }
+textarea { resize: vertical; min-height: 100px; line-height: 1.55; }
+textarea.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; min-height: 110px; }
+
+.cnpj-row { display: flex; gap: 8px; }
+.cnpj-row input { flex: 1; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+.btn-open-links { white-space: nowrap; flex-shrink: 0; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); padding: 0 16px; height: 38px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .15s; }
+.btn-open-links:hover { background: #1440b0; }
+
+.source-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.source-pill { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px 4px 8px; font-size: 12px; color: var(--text-2); background: var(--surface-2); }
+.source-pill a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.source-pill a:hover { text-decoration: underline; }
+.source-pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.tabs { display: flex; margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.tab-btn { flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 500; background: transparent; border: none; border-right: 1px solid var(--border); cursor: pointer; color: var(--text-2); transition: background .12s, color .12s; }
+.tab-btn:last-child { border-right: none; }
+.tab-btn.active { background: var(--accent); color: #fff; }
+.tab-btn:not(.active):hover { background: var(--surface-2); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.hint { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: var(--text-2); margin-bottom: 8px; line-height: 1.5; }
+.hint svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; stroke: var(--text-3); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.actions-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 16px; height: 38px; font-size: 13px; font-weight: 500; color: var(--text-2); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .12s; }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-generate { background: var(--text); color: var(--surface); border: none; border-radius: var(--radius-sm); padding: 0 22px; height: 38px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background .12s, transform .1s; }
+.btn-generate:hover { background: #2d2c2a; }
+.btn-generate:active { transform: scale(.97); }
+.btn-generate svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.loading-bar { display: none; align-items: center; gap: 10px; background: var(--accent-light); border: 1px solid #c7d7f9; border-radius: var(--radius); padding: 12px 16px; margin-top: 16px; font-size: 13px; color: var(--accent); }
+.loading-bar.show { display: flex; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #c7d7f9; border-top-color: var(--accent); animation: spin .8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.output-section { display: none; margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.output-section.show { display: block; }
+.output-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.output-bar-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.output-bar-title svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.output-actions { display: flex; gap: 6px; }
+.btn-sm { background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; height: 30px; font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background .12s; }
+.btn-sm:hover { background: var(--border); }
+.btn-sm svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.output-body { padding: 28px 32px; }
+
+#parecer-content { font-size: 13.5px; line-height: 1.75; color: var(--text); }
+#parecer-content .parecer-title { font-size: 18px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 2px solid var(--text); }
+#parecer-content h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin: 22px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+#parecer-content h2:first-of-type { margin-top: 0; }
+#parecer-content .info-grid { display: grid; grid-template-columns: 160px 1fr; gap: 3px 12px; margin-bottom: 16px; }
+#parecer-content .info-grid .lbl { color: var(--text-2); font-size: 13px; }
+#parecer-content .info-grid .val { font-weight: 500; font-size: 13px; }
+#parecer-content table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0 14px; }
+#parecer-content th { background: var(--surface-2); padding: 6px 10px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); border: 1px solid var(--border); }
+#parecer-content td { padding: 6px 10px; border: 1px solid var(--border); }
+#parecer-content tr.total-row td { font-weight: 600; background: var(--surface-2); border-top: 2px solid var(--border-strong); }
+#parecer-content td.num { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+#parecer-content .total-geral { background: var(--danger-light); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin: 4px 0 16px; }
+#parecer-content .tg-label { font-size: 13px; font-weight: 600; color: var(--danger); }
+#parecer-content .tg-value { font-size: 20px; font-weight: 700; color: var(--danger); font-family: 'JetBrains Mono', monospace; }
+#parecer-content .proc-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; border-left: 3px solid var(--accent); }
+#parecer-content .proc-num { font-weight: 600; font-size: 13px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#parecer-content .proc-detail { font-size: 12px; color: var(--text-2); margin-bottom: 2px; }
+#parecer-content .proc-movs { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+#parecer-content .proc-mov { font-size: 12px; color: var(--text-2); padding: 2px 0; display: flex; gap: 6px; }
+#parecer-content .proc-mov::before { content: '›'; color: var(--text-3); flex-shrink: 0; }
+#parecer-content .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+#parecer-content .badge-ativo { background: var(--success-light); color: var(--success); border: 1px solid #bbf7d0; }
+#parecer-content .sem-processos { background: var(--success-light); border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: var(--success); font-weight: 500; }
+#parecer-content .conclusao-box { background: var(--warning-light); border: 1px solid #fde68a; border-left: 3px solid #d97706; border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 18px; margin-top: 6px; font-size: 13px; line-height: 1.7; }
+#parecer-content .conclusao-box p { margin-bottom: 10px; }
+#parecer-content .conclusao-box p:last-child { margin-bottom: 0; }
+#parecer-content .footer-assinatura { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-3); text-align: right; }
+
+.error-box { display: none; background: var(--danger-light); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: var(--danger); margin-top: 12px; }
+.error-box.show { display: block; }
+.site-footer { text-align: center; padding: 32px 0 20px; font-size: 12px; color: var(--text-3); }
+
+@media (max-width: 540px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
+  #parecer-content .info-grid { grid-template-columns: 1fr; }
+  .output-body { padding: 16px; }
+}
+@media print {
+  .site-header, .steps, .actions-row, .loading-bar, .output-bar, .site-footer { display: none !important; }
+  .output-section { display: block !important; border: none !important; }
+  .output-body { padding: 0 !important; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><rect x="4" y="3" width="12" height="16" rx="2"/><path d="M8 7h6M8 11h6M8 15h4"/><path d="M16 8l3 3-3 3"/></svg>
+    </div>
+    <span class="site-name">Parecer Tributário</span>
+    <span class="site-sub">— gerador</span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-title">
+    <h1>Gerador de parecer tributário</h1>
+    <p>Preencha os dados do contribuinte, cole as informações das fontes oficiais e gere um parecer completo com análise de risco fiscal.</p>
+  </div>
+
+  <div class="steps">
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">1</div>
+        <div class="step-head-text">
+          <h2>Identificação do contribuinte</h2>
+          <p>Preencha os dados cadastrais e abra os sites de consulta</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="form-grid-2">
+          <div class="form-group form-grid-full">
+            <label for="cnpj">CNPJ</label>
+            <div class="cnpj-row">
+              <input type="text" id="cnpj" placeholder="00.000.000/0001-00" maxlength="18" oninput="formatCNPJ(this)" autocomplete="off" />
+              <button class="btn-open-links" onclick="openLinks()">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Abrir consultas
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="nome_empresarial">Nome empresarial (razão social)</label>
+            <input type="text" id="nome_empresarial" placeholder="Ex: João da Silva Construções LTDA" />
+          </div>
+          <div class="form-group">
+            <label for="nome_fantasia">Nome fantasia</label>
+            <input type="text" id="nome_fantasia" placeholder="Opcional" />
+          </div>
+          <div class="form-group">
+            <label for="domicilio">Domicílio</label>
+            <input type="text" id="domicilio" placeholder="Cidade / UF" />
+          </div>
+          <div class="form-group">
+            <label for="atividade">Atividade econômica</label>
+            <input type="text" id="atividade" placeholder="Ex: Obras de alvenaria" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">2</div>
+        <div class="step-head-text">
+          <h2>Dívida ativa — PGFN</h2>
+          <p>Acesse o site, pesquise o CNPJ e cole os dados por categoria</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="source-pills">
+          <div class="source-pill">
+            <div class="source-pill-dot"></div>
+            Fonte:
+            <a href="https://www.listadevedores.pgfn.gov.br/" target="_blank" rel="noopener">listadevedores.pgfn.gov.br ↗</a>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('demais', this)">Demais débitos</button>
+          <button class="tab-btn" onclick="switchTab('prev', this)">Previdenciário</button>
+          <button class="tab-btn" onclick="switchTab('simples', this)">Simples Nacional</button>
+          <button class="tab-btn" onclick="switchTab('fgts', this)">FGTS</button>
+        </div>
+        <div id="tab-demais" class="tab-pane active">
+          <div class="hint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Cole os dados de "Tributário - Demais Débitos". Deixe em branco se não houver.</div>
+          <textarea class="mono" id="pasta_demais" placeholder="80 2 25 091402-32 | 01/05/2026 | 49.012,77&#10;80 6 24 259327-57 | 01/05/2026 | 41.183,52"></textarea>
+        </div>
+        <div id="tab-prev" class="tab-pane">
+          <div class="hint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Cole os dados de "Tributário - Previdenciário". Deixe em branco se não houver.</div>
+          <textarea class="mono" id="pasta_prev" placeholder="81 4 24 312368-07 | 01/05/2026 | 211.594,24"></textarea>
+        </div>
+        <div id="tab-simples" class="tab-pane">
+          <div class="hint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Cole os dados de "Tributário - Simples Nacional". Deixe em branco se não houver.</div>
+          <textarea class="mono" id="pasta_simples" placeholder="81 4 24 311855-52 | 01/05/2026 | 704.008,63"></textarea>
+        </div>
+        <div id="tab-fgts" class="tab-pane">
+          <div class="hint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Cole os dados de "Não Tributário - FGTS". Deixe em branco se não houver.</div>
+          <textarea class="mono" id="pasta_fgts" placeholder="80 8 24 000001-00 | 01/05/2026 | 12.345,67"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">3</div>
+        <div class="step-head-text">
+          <h2>Execuções fiscais — PJe TRF3</h2>
+          <p>Consulte o CNPJ como parte e cole os processos encontrados</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="source-pills">
+          <div class="source-pill">
+            <div class="source-pill-dot"></div>
+            Fonte:
+            <a href="https://pje1g.trf3.jus.br/pje/ConsultaPublica/listView.seam" target="_blank" rel="noopener">pje1g.trf3.jus.br ↗</a>
+          </div>
+        </div>
+        <div class="hint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Cole o número, situação e movimentações de cada processo. Deixe em branco se não houver.</div>
+        <textarea class="mono" id="pasta_processos" placeholder="5001234-12.2024.4.03.6100 | Execução Fiscal | Ativo&#10;Exequente: União Federal — Fazenda Nacional&#10;Executado: EMPRESA XYZ LTDA&#10;Últ. mov.: 13/05/2026 - Mandado devolvido sem cumprimento"></textarea>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">4</div>
+        <div class="step-head-text">
+          <h2>Observações adicionais</h2>
+          <p>Informações complementares para a conclusão do parecer</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <textarea id="obs_adicionais" placeholder="Ex: empresa possui parcelamento em vigor, certidão positiva emitida em tal data..." style="min-height:70px;"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="actions-row">
+    <button class="btn-ghost" onclick="limpar()">
+      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      Limpar
+    </button>
+    <button class="btn-generate" onclick="gerarParecer()">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Gerar parecer
+    </button>
+  </div>
+
+  <div class="loading-bar" id="loading">
+    <div class="spinner"></div>
+    <span id="loading-msg">Analisando dados e redigindo o parecer...</span>
+  </div>
+  <div class="error-box" id="error-box"></div>
+
+  <div class="output-section" id="output">
+    <div class="output-bar">
+      <div class="output-bar-title">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Parecer tributário gerado
+      </div>
+      <div class="output-actions">
+        <button class="btn-sm" onclick="copiarTexto()">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+        <button class="btn-sm" onclick="window.print()">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir
+        </button>
+      </div>
+    </div>
+    <div class="output-body">
+      <div id="parecer-content"></div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Gerador de Parecer Tributário · Dados de PGFN e PJe TRF3 · Apenas para fins informativos
+</footer>
+
+<script>
+function formatCNPJ(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length > 14) v = v.slice(0, 14);
+  v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+  v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+  v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+  v = v.replace(/(\d{4})(\d)/, '$1-$2');
+  el.value = v;
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function openLinks() {
+  window.open('https://www.listadevedores.pgfn.gov.br/', '_blank');
+  setTimeout(() => window.open('https://pje1g.trf3.jus.br/pje/ConsultaPublica/listView.seam', '_blank'), 500);
+}
+
+function limpar() {
+  ['cnpj','nome_empresarial','nome_fantasia','domicilio','atividade',
+   'pasta_demais','pasta_prev','pasta_simples','pasta_fgts','pasta_processos','obs_adicionais']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('output').classList.remove('show');
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('error-box').classList.remove('show');
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+async function gerarParecer() {
+  const cnpj = document.getElementById('cnpj').value.trim();
+  const nome = document.getElementById('nome_empresarial').value.trim();
+  document.getElementById('error-box').classList.remove('show');
+
+  if (!cnpj || !nome) {
+    showError('Preencha pelo menos o CNPJ e o nome empresarial para continuar.');
+    return;
+  }
+
+  const dados = {
+    cnpj, nome,
+    fantasia: document.getElementById('nome_fantasia').value.trim() || '—',
+    domicilio: document.getElementById('domicilio').value.trim() || '—',
+    atividade: document.getElementById('atividade').value.trim() || '—',
+    demais: document.getElementById('pasta_demais').value.trim(),
+    prev: document.getElementById('pasta_prev').value.trim(),
+    simples: document.getElementById('pasta_simples').value.trim(),
+    fgts: document.getElementById('pasta_fgts').value.trim(),
+    processos: document.getElementById('pasta_processos').value.trim(),
+    obs: document.getElementById('obs_adicionais').value.trim(),
+  };
+
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('output').classList.remove('show');
+
+  const msgs = ['Analisando dados e redigindo o parecer...','Calculando totais por categoria...','Verificando execuções fiscais...','Elaborando conclusão jurídica...'];
+  let mi = 0;
+  const iv = setInterval(() => { document.getElementById('loading-msg').textContent = msgs[++mi % msgs.length]; }, 2500);
+
+  const today = new Date().toLocaleDateString('pt-BR');
+
+  const prompt = `Você é um advogado tributarista especializado. Com base nos dados abaixo, gere um PARECER TRIBUTÁRIO completo e profissional, inteiramente em HTML (sem tags html/head/body, sem markdown, sem blocos de código).
+
+DADOS DO CONTRIBUINTE:
+- CNPJ: ${dados.cnpj}
+- Nome Empresarial: ${dados.nome}
+- Nome Fantasia: ${dados.fantasia}
+- Domicílio: ${dados.domicilio}
+- Atividade Econômica: ${dados.atividade}
+- Data do Parecer: ${today}
+
+DÍVIDA ATIVA PGFN — Tributário - Demais Débitos:
+${dados.demais || '(sem registros)'}
+
+DÍVIDA ATIVA PGFN — Tributário - Previdenciário:
+${dados.prev || '(sem registros)'}
+
+DÍVIDA ATIVA PGFN — Tributário - Simples Nacional:
+${dados.simples || '(sem registros)'}
+
+DÍVIDA ATIVA PGFN — Não Tributário - FGTS:
+${dados.fgts || '(sem registros)'}
+
+PROCESSOS DE EXECUÇÃO FISCAL (PJe TRF3):
+${dados.processos || '(nenhum processo encontrado)'}
+
+OBSERVAÇÕES ADICIONAIS:
+${dados.obs || '(nenhuma)'}
+
+INSTRUÇÕES DE ESTRUTURA HTML (use APENAS estas classes CSS já definidas):
+
+1. <div class="parecer-title">PARECER TRIBUTÁRIO</div>
+
+2. <h2>Identificação do contribuinte</h2>
+   <div class="info-grid">
+     <span class="lbl">CNPJ</span><span class="val">...</span>
+     ... (Nome Empresarial, Nome Fantasia, Domicílio, Atividade Econômica, Data)
+   </div>
+
+3. <h2>Dívida ativa — PGFN</h2>
+   Para cada categoria com dados: subtítulo em <strong>, tabela com colunas Número de Inscrição / Atualizado em / Valor (R$), valores em <td class="num">, totais em <tr class="total-row">. Omita categorias sem dados.
+   Ao final: <div class="total-geral"><span class="tg-label">Total geral da dívida ativa</span><span class="tg-value">R$ X.XXX.XXX,XX</span></div>
+
+4. <h2>Execuções fiscais — PJe TRF3</h2>
+   Se houver: <div class="proc-card"> com proc-num, badge-ativo, proc-detail (Classe, Exequente, Executado), proc-movs com proc-mov por movimentação.
+   Se não houver: <div class="sem-processos">Nenhum processo de execução fiscal encontrado no PJe TRF3.</div>
+
+5. <h2>Conclusão</h2>
+   <div class="conclusao-box">
+     <p>Síntese da situação fiscal (total, inscrições, categorias)</p>
+     <p>Análise das execuções e risco de constrição</p>
+     <p>Recomendações práticas</p>
+   </div>
+
+6. <div class="footer-assinatura">Parecer elaborado em ${today} com base em dados públicos das fontes PGFN e PJe TRF3.</div>
+
+REGRAS: calcule totais corretamente; formate valores em R$ 1.234.567,89; conclusão profissional com valores reais. Responda SOMENTE o HTML, sem nenhuma palavra antes ou depois.`;
+
+  try {
+    const res = await fetch('/api/gerar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    clearInterval(iv);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Erro desconhecido');
+    document.getElementById('parecer-content').innerHTML = data.html;
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('output').classList.add('show');
+    document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    clearInterval(iv);
+    document.getElementById('loading').classList.remove('show');
+    showError('Erro ao gerar o parecer: ' + err.message);
+  }
+}
+
+function copiarTexto() {
+  navigator.clipboard.writeText(document.getElementById('parecer-content').innerText).then(() => {
+    const btn = event.currentTarget;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copiado!';
+    setTimeout(() => btn.innerHTML = orig, 2000);
+  });
+}
+</script>
+</body>
+</html>
